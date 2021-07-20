@@ -81,7 +81,7 @@ include_directories(
 
 # cmake config files
 configure_file(${CMAKE_MODULE_PATH}/firebase-admin-config.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}FirebaseAdminQt${QT_VERSION_MAJOR}Config.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/FirebaseAdminQt${QT_VERSION_MAJOR}Config.cmake
     @ONLY
 )
 configure_file(${CMAKE_MODULE_PATH}/firebase-admin-config-version.cmake.in
@@ -101,5 +101,4 @@ install(EXPORT FirebaseAdminTargets
 )
 
 add_subdirectory(src)
-
-#include(CPackConfig)
+include(CPackConfig)
