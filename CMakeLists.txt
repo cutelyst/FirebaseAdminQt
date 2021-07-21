@@ -96,7 +96,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/FirebaseAdminQt${QT_VERSION_MAJOR}Conf
 install(EXPORT FirebaseAdminTargets
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/FirebaseAdminQt${QT_VERSION_MAJOR}/
     FILE FirebaseAdmin${PROJECT_VERSION_MAJOR}Qt${QT_VERSION_MAJOR}Targets.cmake
-    NAMESPACE FirebaseAdminQt${QT_VERSION_MAJOR}::
+    NAMESPACE FirebaseAdminQt::
     COMPONENT Devel
 )
 

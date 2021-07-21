@@ -4,8 +4,9 @@
 #include <QObject>
 #include <QJsonObject>
 #include <QNetworkReply>
+#include <firebaseadminexports.h>
 
-class FirebaseAdminReply : public QObject
+class FIREBASE_ADMIN_QT_EXPORT FirebaseAdminReply : public QObject
 {
     Q_OBJECT
 public:
