@@ -1,7 +1,31 @@
 # SPDX-FileCopyrightText: (C) 2020 Daniel Nicoletti <dantti12@gmail.com>
 # SPDX-License-Identifier: MIT
 
+#
+# Custom C flags
+#
+if (ENABLE_MAINTAINER_CFLAGS)
+    set (MAINTAINER_CFLAGS "-Werror -Wall -Wcast-align -Wno-uninitialized -Wempty-body -Wformat-security -Wformat -Winit-self")
+    add_definitions(${MAINTAINER_CFLAGS}
+        -DQT_DEPRECATED_WARNINGS
+    )
+endif ()
+
+add_definitions(
+    -DQT_NO_KEYWORDS
+    -DQT_NO_CAST_TO_ASCII
+    -DQT_NO_CAST_FROM_ASCII
+    -DQT_STRICT_ITERATORS
+    -DQT_NO_URL_CAST_FROM_STRING
+    -DQT_NO_CAST_FROM_BYTEARRAY
+    -DQT_USE_QSTRINGBUILDER
+    -DQT_NO_SIGNALS_SLOTS_KEYWORDS
+    -DQT_USE_FAST_OPERATOR_PLUS
+    -DQT_DISABLE_DEPRECATED_BEFORE=0x050c00
+)
+
 set(firebase_admin_SRC
+    firebaseauth.cpp
     firebaseadmin.cpp
     firebaseadmincall.cpp
     firebaseadminmessaging.cpp
@@ -10,6 +34,7 @@ set(firebase_admin_SRC
 )
 
 set(firebase_admin_HEADERS
+    firebaseauth.h
     firebaseadmin.h
     firebaseadmincall.h
     firebaseadminmessaging.h
@@ -29,7 +54,7 @@ add_library(FirebaseAdminQt${QT_VERSION_MAJOR}
 )
 
 #Add an alias so that library can be used inside the build tree, e.g. when testing
-add_library(FirebaseAdminQt${QT_VERSION_MAJOR}::Core ALIAS FirebaseAdminQt${QT_VERSION_MAJOR})
+add_library(FirebaseAdminQt::Core ALIAS FirebaseAdminQt${QT_VERSION_MAJOR})
 
 if (CMAKE_GENERATOR MATCHES "Visual Studio")
   set_property(TARGET FirebaseAdminQt${QT_VERSION_MAJOR} PROPERTY DEBUG_POSTFIX "d")
@@ -55,6 +80,7 @@ target_link_libraries(FirebaseAdminQt${QT_VERSION_MAJOR}
     PRIVATE
         Qt${QT_VERSION_MAJOR}::Core
         Qt${QT_VERSION_MAJOR}::Network
+        jwt-cpp::jwt-cpp
 )
 
 set_property(TARGET FirebaseAdminQt${QT_VERSION_MAJOR} PROPERTY PUBLIC_HEADER ${firebase_admin_HEADERS})

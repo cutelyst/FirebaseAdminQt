@@ -109,7 +109,7 @@ void GoogleCloudOAuth2::getAccessToken()
         req.setHeader(QNetworkRequest::ContentTypeHeader, QByteArrayLiteral("application/x-www-form-urlencoded"));
 
         QNetworkReply *reply = m_nam->post(req, query.toString(QUrl::FullyEncoded).toLatin1());
-        connect(reply, &QNetworkReply::finished, this, [=] {
+        connect(reply, &QNetworkReply::finished, this, [=, this] {
             reply->deleteLater();
             const QByteArray data = reply->readAll();
             m_token = QJsonObject();

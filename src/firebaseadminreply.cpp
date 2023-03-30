@@ -17,19 +17,19 @@ void FirebaseAdminReply::setNetworkReply(QNetworkReply *reply)
 
     QElapsedTimer t;
     t.start();
-    connect(reply, &QNetworkReply::finished, this, [=] {
+    connect(reply, &QNetworkReply::finished, this, [=, this] {
         const QByteArray data = reply->readAll();
         qDebug() << "FirebaseAdminReply finished" << reply->error() << data << "elapsed" << t.elapsed();
         const QJsonDocument doc = QJsonDocument::fromJson(data);
         const QJsonObject obj = doc.object();
         if (reply->error()) {
-            const QJsonObject errorJ = obj[QLatin1String("error")].toObject();
+            const QJsonObject errorJ = obj[u"error"].toObject();
             m_error = true;
-            m_errorCode = errorJ[QLatin1String("code")].toInt();
-            m_errorMessage = errorJ[QLatin1String("message")].toString();
+            m_errorCode = errorJ[u"code"].toInt();
+            m_errorMessage = errorJ[u"message"].toString();
         } else {
             m_error = false;
-            m_messageId = obj[QLatin1String("name")].toString();
+            m_messageId = obj[u"name"].toString();
             qDebug() << "FirebaseAdminReply finished success" << m_messageId;
         }
         m_data = obj;

@@ -20,7 +20,7 @@ FirebaseAdminReply *FirebaseAdminMessaging::send(const FirebaseMessage &message,
 {
     FirebaseAdminReply *reply = new FirebaseAdminReply;
 
-    m_admin->getAccessToken(reply, [=] (const GoogleCloudReply &credential) {
+    m_admin->getAccessToken(reply, [=, this] (const GoogleCloudReply &credential) {
         if (credential.error) {
             Q_EMIT reply->finished(reply);
             return;
@@ -28,7 +28,7 @@ FirebaseAdminReply *FirebaseAdminMessaging::send(const FirebaseMessage &message,
 
         QJsonObject data = { {QStringLiteral("message"), message.json()} };
         if (validateOnly) {
-            data[QStringLiteral("validate_only")] = true;
+            data[u"validate_only"] = true;
         }
 
         const QByteArray json = QJsonDocument(data).toJson(QJsonDocument::Compact);
@@ -166,26 +166,26 @@ QJsonObject FirebaseMessage::json() const
 {
     QJsonObject ret;
     if (!m_token.isEmpty()) {
-        ret[QStringLiteral("token")] = m_token;
+        ret[u"token"] = m_token;
     } else if (!m_topic.isEmpty()) {
-        ret[QStringLiteral("topic")] = m_topic;
+        ret[u"topic"] = m_topic;
     } else if (!m_condition.isEmpty()) {
-        ret[QStringLiteral("condition")] = m_condition;
+        ret[u"condition"] = m_condition;
     }
 
     if (!m_notification.first.isEmpty() && !m_notification.second.isEmpty()) {
-        ret[QStringLiteral("notification")] = QJsonObject({
-                                                              {QStringLiteral("title"), m_notification.first},
-                                                              {QStringLiteral("body"), m_notification.second},
-                                                          });
+        ret[u"notification"] = QJsonObject({
+                                               {QStringLiteral("title"), m_notification.first},
+                                               {QStringLiteral("body"), m_notification.second},
+                                           });
     }
 
     if (!m_android.isNull()) {
-        ret[QStringLiteral("android")] = m_android.object();
+        ret[u"android"] = m_android.object();
     }
 
     if (m_apns.isNull()) {
-        ret[QStringLiteral("apns")] = m_apns.object();
+        ret[u"apns"] = m_apns.object();
     }
 
     if (!m_data.isEmpty()) {
@@ -195,7 +195,7 @@ QJsonObject FirebaseMessage::json() const
             data[it.key()] = it.value();
             ++it;
         }
-        ret[QStringLiteral("data")] = data;
+        ret[u"data"] = data;
     }
 
     return ret;
@@ -203,27 +203,27 @@ QJsonObject FirebaseMessage::json() const
 
 void FirebaseAndroidNotification::setTitle(const QString &title)
 {
-    m_notification[QStringLiteral("title")] = title;
+    m_notification[u"title"] = title;
 }
 
 void FirebaseAndroidNotification::setBody(const QString &body)
 {
-    m_notification[QStringLiteral("body")] = body;
+    m_notification[u"body"] = body;
 }
 
 void FirebaseAndroidNotification::setIcon(const QString &icon)
 {
-    m_notification[QStringLiteral("icon")] = icon;
+    m_notification[u"icon"] = icon;
 }
 
 void FirebaseAndroidNotification::setTag(const QString &tag)
 {
-    m_notification[QStringLiteral("tag")] = tag;
+    m_notification[u"tag"] = tag;
 }
 
 void FirebaseAndroidNotification::setColor(const QString &color)
 {
-    m_notification[QStringLiteral("color")] = color;
+    m_notification[u"color"] = color;
 }
 
 void FirebaseAndroidNotification::setData(const QMap<QString, QString> &data)
@@ -234,7 +234,7 @@ void FirebaseAndroidNotification::setData(const QMap<QString, QString> &data)
         obj.insert(it.key(), it.value());
         ++it;
     }
-    m_android[QStringLiteral("data")] = obj;
+    m_android[u"data"] = obj;
 }
 
 bool FirebaseAndroidNotification::isNull() const
@@ -245,9 +245,9 @@ bool FirebaseAndroidNotification::isNull() const
 QJsonObject FirebaseAndroidNotification::object() const
 {
     QJsonObject ret = m_android;
-    ret.insert(QStringLiteral("ttl"), QStringLiteral("600s"));
+    ret.insert(u"ttl", QStringLiteral("600s"));
 
-    ret.insert(QStringLiteral("notification"), m_notification);
+    ret.insert(u"notification", m_notification);
 
     return ret;
 }
@@ -260,12 +260,12 @@ void FirebaseApnsNotification::setHeaders(const QMap<QString, QString> &headers)
         obj.insert(it.key(), it.value());
         ++it;
     }
-    m_notification[QStringLiteral("headers")] = obj;
+    m_notification[u"headers"] = obj;
 }
 
 void FirebaseApnsNotification::setPayload(const QJsonObject &payload)
 {
-    m_notification[QStringLiteral("payload")] = payload;
+    m_notification[u"payload"] = payload;
 }
 
 void FirebaseApnsNotification::setFcmOptions(const QString &analyticsLabel, const QString &image)
@@ -284,6 +284,6 @@ bool FirebaseApnsNotification::isNull() const
 QJsonObject FirebaseApnsNotification::object() const
 {
     QJsonObject ret = m_notification;
-    ret.insert(QStringLiteral("fcm_options"), m_apnsFcmOptions);
+    ret.insert(u"fcm_options", m_apnsFcmOptions);
     return ret;
 }

@@ -1,13 +1,24 @@
 # SPDX-FileCopyrightText: (C) 2021 Daniel Nicoletti <dantti12@gmail.com>
 # SPDX-License-Identifier: MIT
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 project(FirebaseAdmin VERSION 0.1.0 LANGUAGES CXX)
 
-include(GNUInstallDirs)
+if(NOT DEFINED ${QT_VERSION_MAJOR})
+    find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Network REQUIRED)
+endif()
+find_package(Qt${QT_VERSION_MAJOR} 5.15.0 COMPONENTS Core Network REQUIRED)
 
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Network REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} 5.10.0 COMPONENTS Core Network REQUIRED)
+include(GNUInstallDirs)
+include(FetchContent)
+
+FetchContent_Declare(
+  JwtCpp
+  GIT_REPOSITORY https://github.com/Thalhammer/jwt-cpp.git
+  GIT_TAG        4a537e9 # v0.6.0
+)
+set(JWT_BUILD_EXAMPLES off)
+FetchContent_MakeAvailable(JwtCpp)
 
 set(CMAKE_AUTOMOC ON)
 
@@ -21,7 +32,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
 # to always look for includes there:
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -49,29 +60,6 @@ add_definitions("-DLOCALSTATEDIR=\"${LOCALSTATEDIR}\"")
 set(CMAKE_INSTALL_LIBDIR "${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_LIBRARY_ARCHITECTURE}" CACHE PATH "Output directory for libraries")
 
 option(BUILD_SHARED_LIBS "Build in shared lib mode" ON)
-
-#
-# Custom C flags
-#
-if (ENABLE_MAINTAINER_CFLAGS)
-    set (MAINTAINER_CFLAGS "-Werror -Wall -Wcast-align -Wno-uninitialized -Wempty-body -Wformat-security -Wformat -Winit-self")
-    add_definitions(${MAINTAINER_CFLAGS}
-        -DQT_DEPRECATED_WARNINGS
-    )
-endif ()
-
-add_definitions(
-    -DQT_NO_KEYWORDS
-    -DQT_NO_CAST_TO_ASCII
-    -DQT_NO_CAST_FROM_ASCII
-    -DQT_STRICT_ITERATORS
-    -DQT_NO_URL_CAST_FROM_STRING
-    -DQT_NO_CAST_FROM_BYTEARRAY
-    -DQT_USE_QSTRINGBUILDER
-    -DQT_NO_SIGNALS_SLOTS_KEYWORDS
-    -DQT_USE_FAST_OPERATOR_PLUS
-    -DQT_DISABLE_DEPRECATED_BEFORE=0x050c00
-)
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/FirebaseAdmin
