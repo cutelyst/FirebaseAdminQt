@@ -2,6 +2,7 @@
 #define FIREBASEAUTH_H
 
 #include <QObject>
+#include <QJsonObject>
 #include <QHash>
 
 #include <string>
@@ -19,12 +20,19 @@ public:
     void setNetworkAccessManager(QNetworkAccessManager *nam);
 
     /*!
+     * \brief setFirebaseConfig in order to validate the token some
+     * fields must match of this config.
+     * \param config
+     */
+    void setFirebaseConfig(const QJsonObject &config);
+
+    /*!
      * \brief verifyIdToken Verify that the token was created by google
      * \param token
      * \param error
      * \return
      */
-    void verifyIdToken(const std::string &token, QObject *context, std::function<void(QJsonObject &token, QString &error)> cb);
+    void verifyIdToken(const std::string &token, QObject *context, std::function<void(const QJsonObject &decodedToken, const QString &error)> cb);
 
 Q_SIGNALS:
     void publicKeysUpdated();
@@ -37,6 +45,7 @@ private:
     QJsonObject verifyIdToken(const std::string &token, QString &error);
 
     QNetworkAccessManager *m_nam;
+    QJsonObject m_firebaseConfig;
     QHash<QString, std::string> m_googlePubKeys;
 };
 

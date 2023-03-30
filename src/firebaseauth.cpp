@@ -38,30 +38,88 @@ void FirebaseAuth::setNetworkAccessManager(QNetworkAccessManager *nam)
     m_nam = nam;
 }
 
-void FirebaseAuth::verifyIdToken(const std::string &token, QObject *context, std::function<void (QJsonObject &, QString &)> cb)
+void FirebaseAuth::setFirebaseConfig(const QJsonObject &config)
+{
+    m_firebaseConfig = config;
+}
+
+void FirebaseAuth::verifyIdToken(const std::string &token, QObject *context, std::function<void (const QJsonObject &, const QString &)> cb)
 {
     if (cb) {
         QString error;
-        QJsonObject ret = verifyIdToken(token, error);
+        QJsonObject decodedToken = verifyIdToken(token, error);
         if (context && error == u"pubkey-notfound") {
             connect(this, &FirebaseAuth::publicKeysUpdated, context, [this, token, cb] {
                 QString error;
-                QJsonObject ret = verifyIdToken(token, error);
-                cb(ret, error);
+                QJsonObject decodedToken = verifyIdToken(token, error);
+                cb(decodedToken, error);
             });
             getGoogleSecureTokens();
         } else {
-            cb(ret, error);
+            cb(decodedToken, error);
         }
     }
 }
 
+// https://firebase.google.com/docs/auth/admin/verify-id-tokens#verify_id_tokens_using_a_third-party_jwt_library
 QJsonObject FirebaseAuth::verifyIdToken(const std::string &token, QString &error)
 {
     QJsonObject ret;
 
     try {
         auto decoded = jwt::decode(token);
+
+        // TODO add QJson traits to remove this
+        for (auto &e : decoded.get_payload_claims()) {
+            switch (e.second.get_type()) {
+            case jwt::json::type::string:
+                ret.insert(QString::fromStdString(e.first), QString::fromStdString(e.second.as_string()));
+                break;
+            case jwt::json::type::integer:
+                ret.insert(QString::fromStdString(e.first), static_cast<qint64>(e.second.as_int()));
+                break;
+            case jwt::json::type::number:
+                ret.insert(QString::fromStdString(e.first), static_cast<double>(e.second.as_number()));
+                break;
+            default:
+                ret.insert(QString::fromStdString(e.first), QString::fromStdString(e.second.to_json().to_str()));
+                qCWarning(FIREBASE_AUTH) << "SAVING CLAIM as JSON" << e.first.c_str() << e.second.to_json().to_str().c_str();
+                break;
+            }
+        }
+
+        const auto now = QDateTime::currentDateTime();
+        if (QDateTime::fromSecsSinceEpoch(ret[u"exp"].toInteger()) > now) {
+            error = QStringLiteral("token-expired");
+            return ret;
+        }
+
+        if (QDateTime::fromSecsSinceEpoch(ret[u"iat"].toInteger()) < now) {
+            error = QStringLiteral("token-issued-in-future");
+            return ret;
+        }
+
+        const auto projectId = m_firebaseConfig[u"projectId"].toString();
+        if (ret[u"aud"].toString() != projectId) {
+            error = QStringLiteral("token-bad-audience");
+            return ret;
+        }
+
+        if (ret[u"iss"].toString() != u"https://securetoken.google.com/" + projectId) {
+            error = QStringLiteral("token-bad-issuer");
+            return ret;
+        }
+
+        if (ret[u"sub"].toString().isEmpty()) {
+            error = QStringLiteral("token-bad-subject");
+            return ret;
+        }
+
+        if (QDateTime::fromSecsSinceEpoch(ret[u"auth_time"].toInteger()) < now) {
+            error = QStringLiteral("token-bad-auth-time");
+            return ret;
+        }
+
         const QString kid = QString::fromStdString(decoded.get_key_id());
         auto it = m_googlePubKeys.constFind(kid);
         if (it == m_googlePubKeys.constEnd()) {
@@ -75,19 +133,6 @@ QJsonObject FirebaseAuth::verifyIdToken(const std::string &token, QString &error
                 .allow_algorithm(jwt::algorithm::rs256{ pubkey });
 
         verifier.verify(decoded);
-
-        for (auto &e : decoded.get_payload_claims()) {
-            if (e.second.get_type() == jwt::json::type::string) {
-                ret.insert(QString::fromStdString(e.first), QString::fromStdString(e.second.as_string()));
-            } else if (e.second.get_type() == jwt::json::type::integer) {
-                ret.insert(QString::fromStdString(e.first), QString::number(e.second.as_int()));
-            } else if (e.second.get_type() == jwt::json::type::number) {
-                ret.insert(QString::fromStdString(e.first), QString::number(e.second.as_number()));
-            } else {
-                ret.insert(QString::fromStdString(e.first), QString::fromStdString(e.second.to_json().to_str()));
-                qCWarning(FIREBASE_AUTH) << "SAVING CLAIM as JSON" << e.first.c_str() << e.second.to_json().to_str().c_str();
-            }
-        }
     } catch (const jwt::rsa_exception &e) {
         error = QString::fromLatin1(e.what());
         qCDebug(FIREBASE_AUTH) << "FAILED RSA:" << e.what();
