@@ -6,9 +6,10 @@
 
 #include <string>
 #include <functional>
+#include <firebaseadminexports.h>
 
 class QNetworkAccessManager;
-class FirebaseAuth : public QObject
+class FIREBASE_ADMIN_QT_EXPORT FirebaseAuth : public QObject
 {
     Q_OBJECT
 public:
