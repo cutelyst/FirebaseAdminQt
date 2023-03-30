@@ -89,12 +89,12 @@ QJsonObject FirebaseAuth::verifyIdToken(const std::string &token, QString &error
         }
 
         const auto now = QDateTime::currentDateTime();
-        if (QDateTime::fromSecsSinceEpoch(ret[u"exp"].toInteger()) > now) {
+        if (now > QDateTime::fromSecsSinceEpoch(ret[u"exp"].toInteger())) {
             error = QStringLiteral("token-expired");
             return ret;
         }
 
-        if (QDateTime::fromSecsSinceEpoch(ret[u"iat"].toInteger()) < now) {
+        if (now < QDateTime::fromSecsSinceEpoch(ret[u"iat"].toInteger())) {
             error = QStringLiteral("token-issued-in-future");
             return ret;
         }
@@ -115,7 +115,7 @@ QJsonObject FirebaseAuth::verifyIdToken(const std::string &token, QString &error
             return ret;
         }
 
-        if (QDateTime::fromSecsSinceEpoch(ret[u"auth_time"].toInteger()) < now) {
+        if (now < QDateTime::fromSecsSinceEpoch(ret[u"auth_time"].toInteger())) {
             error = QStringLiteral("token-bad-auth-time");
             return ret;
         }
