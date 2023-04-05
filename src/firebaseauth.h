@@ -3,18 +3,20 @@
 
 #include <QObject>
 #include <QJsonObject>
-#include <QHash>
 
 #include <string>
 #include <functional>
 #include <firebaseadminexports.h>
 
 class QNetworkAccessManager;
+class FirebaseAuthPrivate;
 class FIREBASE_ADMIN_QT_EXPORT FirebaseAuth : public QObject
 {
     Q_OBJECT
+    Q_DECLARE_PRIVATE(FirebaseAuth)
 public:
     explicit FirebaseAuth(QObject *parent = nullptr);
+    ~FirebaseAuth();
 
     QNetworkAccessManager *networkAccessManager() const;
     void setNetworkAccessManager(QNetworkAccessManager *nam);
@@ -37,16 +39,11 @@ public:
 Q_SIGNALS:
     void publicKeysUpdated();
 
-protected:
-    static std::string getPubKeyFromCertificate(const std::string &certificate);
-
 private:
     void getGoogleSecureTokens();
     QJsonObject verifyIdToken(const std::string &token, QString &error);
 
-    QNetworkAccessManager *m_nam;
-    QJsonObject m_firebaseConfig;
-    QHash<QString, std::string> m_googlePubKeys;
+    FirebaseAuthPrivate *d_ptr;
 };
 
 #endif // FIREBASEAUTH_H
