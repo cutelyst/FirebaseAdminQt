@@ -16,6 +16,7 @@ Q_LOGGING_CATEGORY(FIREBASE_AUTH, "firebase.auth")
 class FirebaseAuthPrivate
 {
 public:
+    QTimer *updateKeysTimer = nullptr;
     QNetworkAccessManager *m_nam = nullptr;
     QJsonObject m_firebaseConfig;
     // TODO we should cache the verifier instead
@@ -27,12 +28,13 @@ FirebaseAuth::FirebaseAuth(QObject *parent)
     , d_ptr{new FirebaseAuthPrivate}
 {
     d_ptr->m_nam = new QNetworkAccessManager{this};
-    getGoogleSecureTokens();
 
-    auto updateKeys = new QTimer{this};
-    updateKeys->setInterval(5 * 60'000);
-    updateKeys->start();
-    connect(updateKeys, &QTimer::timeout, this, &FirebaseAuth::getGoogleSecureTokens);
+    d_ptr->updateKeysTimer = new QTimer{this};
+    d_ptr->updateKeysTimer->setInterval(60'000);
+    d_ptr->updateKeysTimer->start();
+    connect(d_ptr->updateKeysTimer, &QTimer::timeout, this, &FirebaseAuth::getGoogleSecureTokens);
+
+    getGoogleSecureTokens();
 }
 
 FirebaseAuth::~FirebaseAuth()
@@ -187,6 +189,19 @@ void FirebaseAuth::getGoogleSecureTokens()
                     ++it;
                 }
                 qCDebug(FIREBASE_AUTH) << "Got Google PubKeys" << d_ptr->m_googlePubKeys.keys();
+
+                const QByteArray cacheControl = reply->rawHeader("Cache-control");
+                auto pos = cacheControl.indexOf("max-age=");
+                if (pos != -1) {
+                    auto end = cacheControl.indexOf(',', pos);
+                    bool ok;
+                    int maxAge = cacheControl.mid(pos + 8, end - pos - 8).toInt(&ok);
+                    if (ok) {
+                        d_ptr->updateKeysTimer->setInterval(maxAge * 1'000);
+                    }
+                } else {
+                    d_ptr->updateKeysTimer->setInterval(60'000);
+                }
 
                 return;
             }
