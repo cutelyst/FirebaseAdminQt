@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(FirebaseAdmin VERSION 0.1.0 LANGUAGES CXX)
 
-if(NOT DEFINED ${QT_VERSION_MAJOR})
+if(NOT DEFINED QT_VERSION_MAJOR)
     find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Network REQUIRED)
 endif()
 find_package(Qt${QT_VERSION_MAJOR} 5.15.0 COMPONENTS Core Network REQUIRED)
