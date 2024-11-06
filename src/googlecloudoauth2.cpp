@@ -10,7 +10,8 @@
 
 #include <QLoggingCategory>
 
-#include "jwt-cpp/jwt.h"
+#define JWT_DISABLE_PICOJSON
+#include "jwt/defaults.h"
 
 Q_LOGGING_CATEGORY(GC_OAUTH, "gc.oauth", QtInfoMsg)
 
