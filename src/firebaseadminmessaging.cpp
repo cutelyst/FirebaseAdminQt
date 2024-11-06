@@ -41,11 +41,6 @@ FirebaseAdminReply *FirebaseAdminMessaging::send(const FirebaseMessage &message,
     return reply;
 }
 
-void FirebaseAdminMessaging::setApiKey(const QString &apiKey)
-{
-    m_apiKey = apiKey;
-}
-
 FirebaseAdminReply *FirebaseAdminMessaging::appInfo(const QString &iidToken, bool details)
 {
     FirebaseAdminReply *reply = new FirebaseAdminReply;
@@ -54,8 +49,7 @@ FirebaseAdminReply *FirebaseAdminMessaging::appInfo(const QString &iidToken, boo
     if (details) {
         url.setQuery(QStringLiteral("details=true"));
     }
-    QNetworkRequest req(url);
-    req.setRawHeader(QByteArrayLiteral("Authorization"), QByteArray("key=") + m_apiKey.toLatin1());
+    QNetworkRequest req  = m_admin->defaultRequest(url);
 
     QNetworkReply *namReply = m_admin->networkAccessManager()->get(req);
     reply->setNetworkReply(namReply);
@@ -68,8 +62,7 @@ FirebaseAdminReply *FirebaseAdminMessaging::appSubscribeToTopic(const QString &i
 
     QUrl url(QStringLiteral("https://iid.googleapis.com/iid/v1/") + iidToken + QStringLiteral("/rel/topics/") + topic);
 
-    QNetworkRequest req(url);
-    req.setRawHeader(QByteArrayLiteral("Authorization"), QByteArray("key=") + m_apiKey.toLatin1());
+    QNetworkRequest req  = m_admin->defaultRequest(url);
     req.setHeader(QNetworkRequest::ContentTypeHeader, QByteArrayLiteral("application/json"));
 
     QNetworkReply *namReply = m_admin->networkAccessManager()->post(req, QByteArray());
@@ -88,8 +81,7 @@ FirebaseAdminReply *FirebaseAdminMessaging::appsSubscribeToTopic(const QStringLi
         {QStringLiteral("registration_tokens"), QJsonArray::fromStringList(iidTokens)},
     };
 
-    QNetworkRequest req(url);
-    req.setRawHeader(QByteArrayLiteral("Authorization"), QByteArray("key=") + m_apiKey.toLatin1());
+    QNetworkRequest req  = m_admin->defaultRequest(url);
     req.setHeader(QNetworkRequest::ContentTypeHeader, QByteArrayLiteral("application/json"));
 
     QNetworkReply *namReply = m_admin->networkAccessManager()->post(req, QJsonDocument(obj).toJson(QJsonDocument::Compact));
@@ -108,8 +100,7 @@ FirebaseAdminReply *FirebaseAdminMessaging::appsUnsubscribeToTopic(const QString
         {QStringLiteral("registration_tokens"), QJsonArray::fromStringList(iidTokens)},
     };
 
-    QNetworkRequest req(url);
-    req.setRawHeader(QByteArrayLiteral("Authorization"), QByteArray("key=") + m_apiKey.toLatin1());
+    QNetworkRequest req  = m_admin->defaultRequest(url);
     req.setHeader(QNetworkRequest::ContentTypeHeader, QByteArrayLiteral("application/json"));
 
     QNetworkReply *namReply = m_admin->networkAccessManager()->post(req, QJsonDocument(obj).toJson(QJsonDocument::Compact));

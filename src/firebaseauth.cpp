@@ -87,20 +87,16 @@ QJsonObject FirebaseAuth::verifyIdToken(const std::string &token, QString &error
         auto decoded = jwt::decode(token);
 
         // TODO add QJson traits to remove this
-        for (auto &e : decoded.get_payload_claims()) {
-            switch (e.second.get_type()) {
-            case jwt::json::type::string:
-                ret.insert(QString::fromStdString(e.first), QString::fromStdString(e.second.as_string()));
-                break;
-            case jwt::json::type::integer:
-                ret.insert(QString::fromStdString(e.first), static_cast<qint64>(e.second.as_int()));
-                break;
-            case jwt::json::type::number:
-                ret.insert(QString::fromStdString(e.first), static_cast<double>(e.second.as_number()));
-                break;
-            default:
-                ret.insert(QString::fromStdString(e.first), QString::fromStdString(e.second.to_json().to_str()));
-                qCWarning(FIREBASE_AUTH) << "SAVING CLAIM as JSON" << e.first.c_str() << e.second.to_json().to_str().c_str();
+        for (auto &[key, value] : decoded.get_payload_json()) {
+            if (value.is<std::string>()) {
+                ret.insert(QString::fromStdString(key), QString::fromStdString(value.get<std::string>()));
+            } else if (value.is<int64_t>()) {
+                ret.insert(QString::fromStdString(key), static_cast<qint64>(value.get<int64_t>()));
+            } else if (value.is<double>()) {
+                ret.insert(QString::fromStdString(key), value.get<double>());
+            } else {
+                ret.insert(QString::fromStdString(key), QString::fromStdString(value.to_str()));
+                qCWarning(FIREBASE_AUTH) << "SAVING CLAIM as JSON" << key.c_str() << value.to_str().c_str();
                 break;
             }
         }
@@ -147,10 +143,10 @@ QJsonObject FirebaseAuth::verifyIdToken(const std::string &token, QString &error
         auto verifier = jwt::verify()
                 .allow_algorithm(jwt::algorithm::rs256{ it.value() });
         verifier.verify(decoded);
-    } catch (const jwt::rsa_exception &e) {
+    } catch (const jwt::error::rsa_exception &e) {
         error = QString::fromLatin1(e.what());
         qCDebug(FIREBASE_AUTH) << "FAILED RSA:" << e.what();
-    } catch (const jwt::token_verification_exception &e) {
+    } catch (const jwt::error::token_verification_exception &e) {
         error = QString::fromLatin1(e.what());
         qCDebug(FIREBASE_AUTH) << "FAILED VERIFICATION:" << e.what();
     } catch (const std::invalid_argument &e) {

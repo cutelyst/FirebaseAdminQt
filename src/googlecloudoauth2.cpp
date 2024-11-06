@@ -14,10 +14,11 @@
 
 Q_LOGGING_CATEGORY(GC_OAUTH, "gc.oauth", QtInfoMsg)
 
+using namespace Qt::StringLiterals;
+
 GoogleCloudOAuth2::GoogleCloudOAuth2(QObject *parent) : QObject(parent)
   , m_nam(new QNetworkAccessManager(this))
 {
-
 }
 
 void GoogleCloudOAuth2::setAccountCredentialFile(const QString &filename)
@@ -86,27 +87,27 @@ void GoogleCloudOAuth2::setScopes(const QStringList &scopes)
 
 void GoogleCloudOAuth2::getAccessToken()
 {
-    const QString tokenUri = m_credentialsFile[QLatin1String("token_uri")].toString();
-    const QString privateKey = m_credentialsFile[QLatin1String("private_key")].toString();
+    const QString tokenUri = m_credentialsFile[u"token_uri"].toString();
+    const QString privateKey = m_credentialsFile[u"private_key"].toString();
 
     try {
         auto algo = jwt::algorithm::rs256{std::string(), privateKey.toStdString()};
 
         auto token = jwt::create()
                 .set_type("JWT")
-                .set_issuer(m_credentialsFile[QLatin1String("client_email")].toString().toStdString())
-                .set_payload_claim("scope", jwt::claim(m_scopes.join(QLatin1Char(' ')).toStdString()))
+                .set_issuer(m_credentialsFile[u"client_email"].toString().toStdString())
+                .set_payload_claim("scope", jwt::claim(m_scopes.join(u' ').toStdString()))
                 .set_audience(tokenUri.toStdString())
                 .set_issued_at(std::chrono::system_clock::now())
                 .set_expires_at(std::chrono::system_clock::now() + std::chrono::seconds{3600})
                 .sign(algo);
 
         QUrlQuery query;
-        query.addQueryItem(QStringLiteral("grant_type"), QStringLiteral("urn:ietf:params:oauth:grant-type:jwt-bearer"));
-        query.addQueryItem(QStringLiteral("assertion"), QString::fromStdString(token));
+        query.addQueryItem(u"grant_type"_s, u"urn:ietf:params:oauth:grant-type:jwt-bearer"_s);
+        query.addQueryItem(u"assertion"_s, QString::fromStdString(token));
 
         QNetworkRequest req(QUrl{tokenUri});
-        req.setHeader(QNetworkRequest::ContentTypeHeader, QByteArrayLiteral("application/x-www-form-urlencoded"));
+        req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded"_ba);
 
         QNetworkReply *reply = m_nam->post(req, query.toString(QUrl::FullyEncoded).toLatin1());
         connect(reply, &QNetworkReply::finished, this, [=, this] {
@@ -144,7 +145,7 @@ void GoogleCloudOAuth2::getAccessToken()
             m_gettingToken = false;
         });
         m_gettingToken = true;
-    } catch (const jwt::rsa_exception &e) {
+    } catch (const jwt::error::rsa_exception &e) {
         qCDebug(GC_OAUTH) << "FAILED RSA:" << e.what();
         GoogleCloudReply gcr;
         gcr.error = true;

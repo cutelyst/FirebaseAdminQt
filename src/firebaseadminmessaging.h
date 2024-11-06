@@ -79,7 +79,6 @@ public:
 
     FirebaseAdminReply *send(const FirebaseMessage &message, bool validateOnly = false);
 
-    void setApiKey(const QString &apiKey);
     FirebaseAdminReply *appInfo(const QString &iidToken, bool details = true);
     FirebaseAdminReply *appSubscribeToTopic(const QString &iidToken, const QString &topic);
 
@@ -101,7 +100,6 @@ public:
 
 private:
     QUrl m_fcmUrl;
-    QString m_apiKey;
     FirebaseAdmin *m_admin;
 };
 
