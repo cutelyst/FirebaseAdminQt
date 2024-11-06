@@ -1,21 +1,22 @@
-# SPDX-FileCopyrightText: (C) 2021 Daniel Nicoletti <dantti12@gmail.com>
+# SPDX-FileCopyrightText: (C) 2021-2024 Daniel Nicoletti <dantti12@gmail.com>
 # SPDX-License-Identifier: MIT
 
 cmake_minimum_required(VERSION 3.16)
-project(FirebaseAdmin VERSION 0.1.0 LANGUAGES CXX)
+project(FirebaseAdmin VERSION 0.2.0 LANGUAGES CXX)
 
 if(NOT DEFINED QT_VERSION_MAJOR)
-    find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Network REQUIRED)
+    find_package(QT NAMES Qt6 COMPONENTS Core Network REQUIRED)
 endif()
-find_package(Qt${QT_VERSION_MAJOR} 5.15.0 COMPONENTS Core Network REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} 6.4.0 COMPONENTS Core Network REQUIRED)
 
 include(GNUInstallDirs)
 include(FetchContent)
 
 FetchContent_Declare(
-  JwtCpp
-  GIT_REPOSITORY https://github.com/Thalhammer/jwt-cpp.git
-  GIT_TAG        4a537e9 # v0.6.0
+    JwtCpp
+    GIT_REPOSITORY https://github.com/Thalhammer/jwt-cpp.git
+    GIT_TAG        6dd190d
+    EXCLUDE_FROM_ALL
 )
 set(JWT_BUILD_EXAMPLES off)
 FetchContent_MakeAvailable(JwtCpp)
@@ -38,9 +39,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Forbid in-tree building
 if(CMAKE_CURRENT_SOURCE_DIR MATCHES CMAKE_BINARY_DIR)
-      message(STATUS "Please do an out-of-tree build:")
-      message(STATUS "rm -f CMakeCache.txt && mkdir build && cd build; cmake .. && make")
-      message(FATAL_ERROR "In-tree-build detected!")
+    message(STATUS "Please do an out-of-tree build:")
+    message(STATUS "rm -f CMakeCache.txt && mkdir build && cd build; cmake .. && make")
+    message(FATAL_ERROR "In-tree-build detected!")
 endif()
 
 #
@@ -51,8 +52,8 @@ option(ENABLE_MAINTAINER_CFLAGS "Enable maintainer CFlags" OFF)
 # NONE
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX
-    "/usr" CACHE PATH "firebase admin default install prefix" FORCE)
+    set(CMAKE_INSTALL_PREFIX
+        "/usr" CACHE PATH "firebase admin default install prefix" FORCE)
 endif()
 
 add_definitions("-DLOCALSTATEDIR=\"${LOCALSTATEDIR}\"")

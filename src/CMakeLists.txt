@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: (C) 2020 Daniel Nicoletti <dantti12@gmail.com>
+# SPDX-FileCopyrightText: (C) 2020-2024 Daniel Nicoletti <dantti12@gmail.com>
 # SPDX-License-Identifier: MIT
 
 #
@@ -47,44 +47,45 @@ set(firebase_admin_HEADERS_PRIVATE
 #     common.h
 )
 
-add_library(FirebaseAdminQt${QT_VERSION_MAJOR}
+set(target FirebaseAdminQt${QT_VERSION_MAJOR})
+add_library(${target}
     ${firebase_admin_SRC}
     ${firebase_admin_HEADERS}
     ${firebase_admin_HEADERS_PRIVATE}
 )
 
 #Add an alias so that library can be used inside the build tree, e.g. when testing
-add_library(FirebaseAdminQt::Core ALIAS FirebaseAdminQt${QT_VERSION_MAJOR})
+add_library(FirebaseAdminQt::Core ALIAS ${target})
 
 if (CMAKE_GENERATOR MATCHES "Visual Studio")
-  set_property(TARGET FirebaseAdminQt${QT_VERSION_MAJOR} PROPERTY DEBUG_POSTFIX "d")
+  set_property(TARGET ${target} PROPERTY DEBUG_POSTFIX "d")
 endif()
 
-target_compile_definitions(FirebaseAdminQt${QT_VERSION_MAJOR}
-  PRIVATE
-    PLUGINS_PREFER_DEBUG_POSTFIX=$<CONFIG:Debug>
+target_compile_definitions(${target}
+    PRIVATE
+        PLUGINS_PREFER_DEBUG_POSTFIX=$<CONFIG:Debug>
 )
 
-target_include_directories(FirebaseAdminQt${QT_VERSION_MAJOR} PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-  $<INSTALL_INTERFACE:include/firebase-admin-qt${QT_VERSION_MAJOR}/FirebaseAdminQt>
+target_include_directories(${target} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include/firebase-admin-qt${QT_VERSION_MAJOR}/FirebaseAdminQt>
 )
 
-set_target_properties(FirebaseAdminQt${QT_VERSION_MAJOR} PROPERTIES
+set_target_properties(${target} PROPERTIES
     EXPORT_NAME Core
     VERSION ${PROJECT_VERSION}
     SOVERSION 0
 )
 
-target_link_libraries(FirebaseAdminQt${QT_VERSION_MAJOR}
+target_link_libraries(${target}
     PRIVATE
-        Qt${QT_VERSION_MAJOR}::Core
-        Qt${QT_VERSION_MAJOR}::Network
+        Qt::Core
+        Qt::Network
         jwt-cpp::jwt-cpp
 )
 
-set_property(TARGET FirebaseAdminQt${QT_VERSION_MAJOR} PROPERTY PUBLIC_HEADER ${firebase_admin_HEADERS})
-install(TARGETS FirebaseAdminQt${QT_VERSION_MAJOR}
+set_property(TARGET ${target} PROPERTY PUBLIC_HEADER ${firebase_admin_HEADERS})
+install(TARGETS ${target}
     EXPORT FirebaseAdminTargets DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION bin COMPONENT runtime
     ARCHIVE DESTINATION lib COMPONENT devel
