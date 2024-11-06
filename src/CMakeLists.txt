@@ -74,6 +74,8 @@ add_library(${target}
     ${firebase_admin_SRC}
     ${firebase_admin_HEADERS}
     ${firebase_admin_HEADERS_PRIVATE}
+    jwt/defaults.h
+    jwt/traits.h
 )
 set_compiler_flags(${target})
 
