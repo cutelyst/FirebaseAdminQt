@@ -4,12 +4,34 @@
 #
 # Custom C flags
 #
-if (ENABLE_MAINTAINER_CFLAGS)
-    set (MAINTAINER_CFLAGS "-Werror -Wall -Wcast-align -Wno-uninitialized -Wempty-body -Wformat-security -Wformat -Winit-self")
-    add_definitions(${MAINTAINER_CFLAGS}
-        -DQT_DEPRECATED_WARNINGS
-    )
-endif ()
+macro(set_compiler_flags targetName)
+  if(ENABLE_MAINTAINER_CFLAGS)
+    target_compile_definitions(${targetName} PRIVATE QT_DEPRECATED_WARNINGS)
+
+    if(NOT MSVC)
+      target_compile_options(${targetName} PRIVATE
+        -Wall
+        -Wextra
+        -Wcast-align
+        -Wno-uninitialized
+        -Wempty-body
+        -Wformat-security
+        -Wformat
+        -Winit-self
+        -Wunused-variable
+      )
+    endif()
+
+    if(APPLE)
+      target_compile_options(${targetName} PRIVATE -Wweak-vtables)
+    endif()
+  endif()
+
+  # Enable -Werror
+  if(NOT MSVC OR IS_CLANG_BUILD) # clang-cl accepts these too
+    target_compile_options(${targetName} PRIVATE -Werror -Wundef -Wno-error=deprecated-declarations)
+  endif()
+endmacro()
 
 add_definitions(
     -DQT_NO_KEYWORDS
@@ -53,6 +75,7 @@ add_library(${target}
     ${firebase_admin_HEADERS}
     ${firebase_admin_HEADERS_PRIVATE}
 )
+set_compiler_flags(${target})
 
 #Add an alias so that library can be used inside the build tree, e.g. when testing
 add_library(FirebaseAdminQt::Core ALIAS ${target})
