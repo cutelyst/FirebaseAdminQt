@@ -16,7 +16,7 @@ using claim = basic_claim<traits::qt_json>;
  * \return verifier instance
  */
 inline verifier<default_clock, traits::qt_json> verify() {
-    return verify<default_clock, traits::qt_json>(default_clock{});
+  return verify<default_clock, traits::qt_json>(default_clock{});
 }
 
 /**
@@ -24,7 +24,7 @@ inline verifier<default_clock, traits::qt_json> verify() {
  * \return builder instance to create a new token
  */
 inline builder<default_clock, traits::qt_json> create() {
-    return builder<default_clock, traits::qt_json>(default_clock{});
+  return builder<default_clock, traits::qt_json>(default_clock{});
 }
 
 #ifndef JWT_DISABLE_BASE64
@@ -36,7 +36,7 @@ inline builder<default_clock, traits::qt_json> create() {
  * \throw std::runtime_error Base64 decoding failed or invalid json
  */
 inline decoded_jwt<traits::qt_json> decode(const std::string &token) {
-    return decoded_jwt<traits::qt_json>(token);
+  return decoded_jwt<traits::qt_json>(token);
 }
 #endif
 
@@ -51,9 +51,9 @@ inline decoded_jwt<traits::qt_json> decode(const std::string &token) {
  * \throw std::invalid_argument Token is not in correct format
  * \throw std::runtime_error Base64 decoding failed or invalid json
  */
-template<typename Decode>
-decoded_jwt<traits::qt_json> decode(const std::string& token, Decode decode) {
-    return decoded_jwt<traits::qt_json>(token, decode);
+template <typename Decode>
+decoded_jwt<traits::qt_json> decode(const std::string &token, Decode decode) {
+  return decoded_jwt<traits::qt_json>(token, decode);
 }
 
 /**
@@ -62,8 +62,9 @@ decoded_jwt<traits::qt_json> decode(const std::string& token, Decode decode) {
  * \return Parsed JWK
  * \throw std::runtime_error Token is not in correct format
  */
-inline jwk<traits::qt_json> parse_jwk(const traits::qt_json::string_type& token) {
-    return jwk<traits::qt_json>(token);
+inline jwk<traits::qt_json>
+parse_jwk(const traits::qt_json::string_type &token) {
+  return jwk<traits::qt_json>(token);
 }
 
 /**
@@ -72,13 +73,14 @@ inline jwk<traits::qt_json> parse_jwk(const traits::qt_json::string_type& token)
  * \return Parsed JWKs
  * \throw std::runtime_error Token is not in correct format
  */
-inline jwks<traits::qt_json> parse_jwks(const traits::qt_json::string_type& token) {
-    return jwks<traits::qt_json>(token);
+inline jwks<traits::qt_json>
+parse_jwks(const traits::qt_json::string_type &token) {
+  return jwks<traits::qt_json>(token);
 }
 
 /**
- * This type is the specialization of the \ref verify_ops::verify_context class which
- * uses the qt_json.
+ * This type is the specialization of the \ref verify_ops::verify_context class
+ * which uses the qt_json.
  */
 using verify_context = verify_ops::verify_context<traits::qt_json>;
 } // namespace jwt
