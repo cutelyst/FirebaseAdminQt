@@ -1,32 +1,31 @@
 #include "firebaseadmin.h"
 
-#include <QFile>
-#include <QJsonDocument>
 #include <QJsonObject>
 #include <QLoggingCategory>
-#include <QProcess>
+
+using namespace Qt::StringLiterals;
 
 FirebaseAdmin::FirebaseAdmin(QObject *parent)
     : GoogleCloudOAuth2(parent)
 {
     setScopes({
-        QStringLiteral("https://www.googleapis.com/auth/cloud-platform"),
-        QStringLiteral("https://www.googleapis.com/auth/datastore"),
-        QStringLiteral("https://www.googleapis.com/auth/devstorage.read_write"),
-        QStringLiteral("https://www.googleapis.com/auth/firebase"),
-        QStringLiteral("https://www.googleapis.com/auth/identitytoolkit"),
-        QStringLiteral("https://www.googleapis.com/auth/userinfo.email"),
+        u"https://www.googleapis.com/auth/cloud-platform"_s,
+        u"https://www.googleapis.com/auth/datastore"_s,
+        u"https://www.googleapis.com/auth/devstorage.read_write"_s,
+        u"https://www.googleapis.com/auth/firebase"_s,
+        u"https://www.googleapis.com/auth/identitytoolkit"_s,
+        u"https://www.googleapis.com/auth/userinfo.email"_s,
     });
 }
 
 QString FirebaseAdmin::projectId() const
 {
-    return accountCredential()[QStringLiteral("project_id")].toString();
+    return accountCredential()[u"project_id"].toString();
 }
 
 QByteArray FirebaseAdmin::clientVersionHeader() const
 {
-    return QByteArrayLiteral("fire-admin-qt/0.1");
+    return "fire-admin-qt/0.1"_ba;
 }
 
 QNetworkRequest FirebaseAdmin::defaultRequest(const QUrl &url) const
@@ -38,11 +37,11 @@ QNetworkRequest FirebaseAdmin::defaultRequest(const QUrl &url) const
 #else
     req.setAttribute(QNetworkRequest::Http2AllowedAttribute, true);
 #endif
-    req.setRawHeader(QByteArrayLiteral("AUTHORIZATION"), accessTokenHeader());
+    req.setRawHeader("AUTHORIZATION"_ba, accessTokenHeader());
 
-    req.setHeader(QNetworkRequest::ContentTypeHeader, QByteArrayLiteral("application/json"));
-    req.setRawHeader(QByteArrayLiteral("X-GOOG-API-FORMAT-VERSION"), QByteArrayLiteral("2"));
-    req.setRawHeader(QByteArrayLiteral("X-FIREBASE-CLIENT"), clientVersionHeader());
+    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json"_ba);
+    req.setRawHeader("X-GOOG-API-FORMAT-VERSION"_ba, "2"_ba);
+    req.setRawHeader("X-FIREBASE-CLIENT"_ba, clientVersionHeader());
 
     return req;
 }

@@ -19,6 +19,7 @@ GoogleCloudOAuth2::GoogleCloudOAuth2(QObject *parent)
     : QObject(parent)
     , m_nam(new QNetworkAccessManager(this))
 {
+    m_nam->setAutoDeleteReplies(true);
 }
 
 void GoogleCloudOAuth2::setAccountCredentialFile(const QString &filename)
@@ -113,7 +114,6 @@ void GoogleCloudOAuth2::getAccessToken()
 
         QNetworkReply *reply = m_nam->post(req, query.toString(QUrl::FullyEncoded).toLatin1());
         connect(reply, &QNetworkReply::finished, this, [=, this] {
-            reply->deleteLater();
             const QByteArray data = reply->readAll();
             m_token               = QJsonObject();
             m_accessTokenHeader.clear();

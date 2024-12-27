@@ -102,7 +102,8 @@ public:
     FirebaseAdminReply *appsUnsubscribeToTopic(const QStringList &iidTokens, const QString &topic);
 
 private:
-    QUrl m_fcmUrl;
+    QUrl fcmUrl() const;
+
     FirebaseAdmin *m_admin;
 };
 

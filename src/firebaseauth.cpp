@@ -11,6 +11,8 @@
 
 Q_LOGGING_CATEGORY(FIREBASE_AUTH, "firebase.auth")
 
+using namespace Qt::StringLiterals;
+
 class FirebaseAuthPrivate
 {
 public:
@@ -26,9 +28,11 @@ FirebaseAuth::FirebaseAuth(QObject *parent)
     , d_ptr{new FirebaseAuthPrivate}
 {
     d_ptr->m_nam = new QNetworkAccessManager{this};
+    d_ptr->m_nam->setAutoDeleteReplies(true);
 
+    using namespace std::chrono;
     d_ptr->updateKeysTimer = new QTimer{this};
-    d_ptr->updateKeysTimer->setInterval(60'000);
+    d_ptr->updateKeysTimer->setInterval(1min);
     d_ptr->updateKeysTimer->start();
     connect(d_ptr->updateKeysTimer, &QTimer::timeout, this, &FirebaseAuth::getGoogleSecureTokens);
 
@@ -105,33 +109,33 @@ QJsonObject FirebaseAuth::verifyIdToken(const std::string &token, QString &error
 
         const auto now = QDateTime::currentDateTime();
         if (now > QDateTime::fromSecsSinceEpoch(ret[u"exp"].toInteger())) {
-            error = QStringLiteral("token-expired");
+            error = u"token-expired"_s;
             return ret;
         }
 
         if (now < QDateTime::fromSecsSinceEpoch(ret[u"iat"].toInteger())) {
-            error = QStringLiteral("token-issued-in-future");
+            error = u"token-issued-in-future"_s;
             return ret;
         }
 
         const auto projectId = d_ptr->m_firebaseConfig[u"projectId"].toString();
         if (ret[u"aud"].toString() != projectId) {
-            error = QStringLiteral("token-bad-audience");
+            error = u"token-bad-audience"_s;
             return ret;
         }
 
         if (ret[u"iss"].toString() != u"https://securetoken.google.com/" + projectId) {
-            error = QStringLiteral("token-bad-issuer");
+            error = u"token-bad-issuer"_s;
             return ret;
         }
 
         if (ret[u"sub"].toString().isEmpty()) {
-            error = QStringLiteral("token-bad-subject");
+            error = u"token-bad-subject"_s;
             return ret;
         }
 
         if (now < QDateTime::fromSecsSinceEpoch(ret[u"auth_time"].toInteger())) {
-            error = QStringLiteral("token-bad-auth-time");
+            error = u"token-bad-auth-time"_s;
             return ret;
         }
 
@@ -139,7 +143,7 @@ QJsonObject FirebaseAuth::verifyIdToken(const std::string &token, QString &error
         auto it           = d_ptr->m_googlePubKeys.constFind(kid);
         if (it == d_ptr->m_googlePubKeys.constEnd()) {
             qCWarning(FIREBASE_AUTH) << "Pub Key Id not found" << kid;
-            error = QStringLiteral("pubkey-notfound");
+            error = u"pubkey-notfound"_s;
             return ret;
         }
         auto verifier = jwt::verify().allow_algorithm(jwt::algorithm::rs256{it.value()});
@@ -159,12 +163,10 @@ QJsonObject FirebaseAuth::verifyIdToken(const std::string &token, QString &error
 
 void FirebaseAuth::getGoogleSecureTokens()
 {
-    QNetworkRequest req(QUrl(QStringLiteral("https://www.googleapis.com/robot/v1/metadata/x509/"
-                                            "securetoken@system.gserviceaccount.com")));
+    QNetworkRequest req(QUrl{
+        u"https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com"_s});
     QNetworkReply *reply = d_ptr->m_nam->get(req);
     connect(reply, &QNetworkReply::finished, this, [=, this] {
-        reply->deleteLater();
-
         if (reply->error()) {
             qCWarning(FIREBASE_AUTH) << "Failed to get Google m_googlePubKeys";
         } else {

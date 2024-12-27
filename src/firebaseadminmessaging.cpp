@@ -9,12 +9,12 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 
+using namespace Qt::StringLiterals;
+
 FirebaseAdminMessaging::FirebaseAdminMessaging(FirebaseAdmin *parent)
     : QObject(parent)
     , m_admin(parent)
 {
-    m_fcmUrl = QUrl(QLatin1String("https://fcm.googleapis.com/v1/projects/") +
-                    m_admin->projectId() + QLatin1String("/messages:send"));
 }
 
 FirebaseAdminReply *FirebaseAdminMessaging::send(const FirebaseMessage &message, bool validateOnly)
@@ -27,13 +27,15 @@ FirebaseAdminReply *FirebaseAdminMessaging::send(const FirebaseMessage &message,
             return;
         }
 
-        QJsonObject data = {{QStringLiteral("message"), message.json()}};
+        QJsonObject data = {
+            {u"message"_s, message.json()},
+        };
         if (validateOnly) {
             data[u"validate_only"] = true;
         }
 
         const QByteArray json     = QJsonDocument(data).toJson(QJsonDocument::Compact);
-        const QNetworkRequest req = m_admin->defaultRequest(m_fcmUrl);
+        const QNetworkRequest req = m_admin->defaultRequest(fcmUrl());
 
         QNetworkReply *namReply = m_admin->networkAccessManager()->post(req, json);
         reply->setNetworkReply(namReply);
@@ -46,9 +48,9 @@ FirebaseAdminReply *FirebaseAdminMessaging::appInfo(const QString &iidToken, boo
 {
     FirebaseAdminReply *reply = new FirebaseAdminReply;
 
-    QUrl url(QStringLiteral("https://iid.googleapis.com/iid/info/") + iidToken);
+    QUrl url(u"https://iid.googleapis.com/iid/info/" + iidToken);
     if (details) {
-        url.setQuery(QStringLiteral("details=true"));
+        url.setQuery(u"details=true"_s);
     }
     QNetworkRequest req = m_admin->defaultRequest(url);
 
@@ -62,11 +64,10 @@ FirebaseAdminReply *FirebaseAdminMessaging::appSubscribeToTopic(const QString &i
 {
     FirebaseAdminReply *reply = new FirebaseAdminReply;
 
-    QUrl url(QStringLiteral("https://iid.googleapis.com/iid/v1/") + iidToken +
-             QStringLiteral("/rel/topics/") + topic);
+    QUrl url(u"https://iid.googleapis.com/iid/v1/" + iidToken + u"/rel/topics/" + topic);
 
     QNetworkRequest req = m_admin->defaultRequest(url);
-    req.setHeader(QNetworkRequest::ContentTypeHeader, QByteArrayLiteral("application/json"));
+    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json"_ba);
 
     QNetworkReply *namReply = m_admin->networkAccessManager()->post(req, QByteArray());
     reply->setNetworkReply(namReply);
@@ -78,15 +79,15 @@ FirebaseAdminReply *FirebaseAdminMessaging::appsSubscribeToTopic(const QStringLi
 {
     FirebaseAdminReply *reply = new FirebaseAdminReply;
 
-    QUrl url(QStringLiteral("https://iid.googleapis.com/iid/v1:batchAdd"));
+    QUrl url(u"https://iid.googleapis.com/iid/v1:batchAdd"_s);
 
     QJsonObject obj{
-        {QStringLiteral("to"), QJsonValue(QLatin1String("/topics/") + topic)},
-        {QStringLiteral("registration_tokens"), QJsonArray::fromStringList(iidTokens)},
+        {u"to"_s, QJsonValue(u"/topics/" + topic)},
+        {u"registration_tokens"_s, QJsonArray::fromStringList(iidTokens)},
     };
 
     QNetworkRequest req = m_admin->defaultRequest(url);
-    req.setHeader(QNetworkRequest::ContentTypeHeader, QByteArrayLiteral("application/json"));
+    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json"_ba);
 
     QNetworkReply *namReply = m_admin->networkAccessManager()->post(
         req, QJsonDocument(obj).toJson(QJsonDocument::Compact));
@@ -99,20 +100,26 @@ FirebaseAdminReply *FirebaseAdminMessaging::appsUnsubscribeToTopic(const QString
 {
     FirebaseAdminReply *reply = new FirebaseAdminReply;
 
-    QUrl url(QStringLiteral("https://iid.googleapis.com/iid/v1:batchRemove"));
+    QUrl url(u"https://iid.googleapis.com/iid/v1:batchRemove"_s);
 
     QJsonObject obj{
-        {QStringLiteral("to"), QJsonValue(QLatin1String("/topics/") + topic)},
-        {QStringLiteral("registration_tokens"), QJsonArray::fromStringList(iidTokens)},
+        {u"to"_s, QJsonValue(u"/topics/" + topic)},
+        {u"registration_tokens"_s, QJsonArray::fromStringList(iidTokens)},
     };
 
     QNetworkRequest req = m_admin->defaultRequest(url);
-    req.setHeader(QNetworkRequest::ContentTypeHeader, QByteArrayLiteral("application/json"));
+    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json"_ba);
 
     QNetworkReply *namReply = m_admin->networkAccessManager()->post(
         req, QJsonDocument(obj).toJson(QJsonDocument::Compact));
     reply->setNetworkReply(namReply);
     return reply;
+}
+
+QUrl FirebaseAdminMessaging::fcmUrl() const
+{
+    return QUrl{u"https://fcm.googleapis.com/v1/projects/" + m_admin->projectId() +
+                u"/messages:send"};
 }
 
 FirebaseMessage::FirebaseMessage()
@@ -172,8 +179,8 @@ QJsonObject FirebaseMessage::json() const
 
     if (!m_notification.first.isEmpty() && !m_notification.second.isEmpty()) {
         ret[u"notification"] = QJsonObject({
-            {QStringLiteral("title"), m_notification.first},
-            {QStringLiteral("body"), m_notification.second},
+            {u"title"_s, m_notification.first},
+            {u"body"_s, m_notification.second},
         });
     }
 
@@ -242,7 +249,7 @@ bool FirebaseAndroidNotification::isNull() const
 QJsonObject FirebaseAndroidNotification::object() const
 {
     QJsonObject ret = m_android;
-    ret.insert(u"ttl", QStringLiteral("600s"));
+    ret.insert(u"ttl", u"600s"_s);
 
     ret.insert(u"notification", m_notification);
 
@@ -268,8 +275,8 @@ void FirebaseApnsNotification::setPayload(const QJsonObject &payload)
 void FirebaseApnsNotification::setFcmOptions(const QString &analyticsLabel, const QString &image)
 {
     m_apnsFcmOptions = {
-        {QStringLiteral("analytics_label"), analyticsLabel},
-        {QStringLiteral("image"), image},
+        {u"analytics_label"_s, analyticsLabel},
+        {u"image"_s, image},
     };
 }
 

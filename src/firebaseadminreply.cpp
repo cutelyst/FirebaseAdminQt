@@ -5,6 +5,8 @@
 #include <QJsonObject>
 #include <QLoggingCategory>
 
+Q_LOGGING_CATEGORY(FIREBASE_ADMIN, "firebase.admin")
+
 FirebaseAdminReply::FirebaseAdminReply(QNetworkReply *reply)
     : QObject(reply)
     , m_reply(reply)
@@ -15,15 +17,11 @@ void FirebaseAdminReply::setNetworkReply(QNetworkReply *reply)
 {
     m_reply = reply;
 
-    QElapsedTimer t;
-    t.start();
     connect(reply, &QNetworkReply::finished, this, [=, this] {
         const QByteArray data = reply->readAll();
-        qDebug() << "FirebaseAdminReply finished" << reply->error() << data << "elapsed"
-                 << t.elapsed();
-        const QJsonDocument doc = QJsonDocument::fromJson(data);
-        const QJsonObject obj   = doc.object();
+        const QJsonObject obj = QJsonDocument::fromJson(data).object();
         if (reply->error()) {
+            qWarning(FIREBASE_ADMIN) << "FirebaseAdminReply error" << reply->error();
             const QJsonObject errorJ = obj[u"error"].toObject();
             m_error                  = true;
             m_errorCode              = errorJ[u"code"].toInt();
@@ -31,7 +29,7 @@ void FirebaseAdminReply::setNetworkReply(QNetworkReply *reply)
         } else {
             m_error     = false;
             m_messageId = obj[u"name"].toString();
-            qDebug() << "FirebaseAdminReply finished success" << m_messageId;
+            qDebug(FIREBASE_ADMIN) << "FirebaseAdminReply finished success" << m_messageId;
         }
         m_data = obj;
         Q_EMIT finished(this);
