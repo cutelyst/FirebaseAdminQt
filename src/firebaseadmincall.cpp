@@ -1,3 +1,6 @@
 #include "firebaseadmincall.h"
 
-FirebaseAdminCall::FirebaseAdminCall(QObject *parent) : QObject(parent) {}
+FirebaseAdminCall::FirebaseAdminCall(QObject *parent)
+    : QObject(parent)
+{
+}

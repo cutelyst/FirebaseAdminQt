@@ -9,9 +9,9 @@
 #include <QtCore/QtGlobal>
 
 #if defined(FirebaseAdminQt6_EXPORTS)
-#define FIREBASE_ADMIN_QT_EXPORT Q_DECL_EXPORT
+#    define FIREBASE_ADMIN_QT_EXPORT Q_DECL_EXPORT
 #else
-#define FIREBASE_ADMIN_QT_EXPORT Q_DECL_IMPORT
+#    define FIREBASE_ADMIN_QT_EXPORT Q_DECL_IMPORT
 #endif
 
 #endif

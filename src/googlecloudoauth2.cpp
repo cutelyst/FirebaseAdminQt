@@ -11,7 +11,7 @@
 #include <QUrl>
 #include <QUrlQuery>
 
-Q_LOGGING_CATEGORY(GC_OAUTH, "gc.oauth", QtInfoMsg)
+Q_LOGGING_CATEGORY(GC_OAUTH, "gc.oauth" /*, QtInfoMsg*/)
 
 using namespace Qt::StringLiterals;
 
