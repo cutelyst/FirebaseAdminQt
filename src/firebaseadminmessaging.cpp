@@ -230,6 +230,11 @@ void FirebaseAndroidNotification::setColor(const QString &color)
     m_notification[u"color"] = color;
 }
 
+void FirebaseAndroidNotification::setTtl(std::chrono::seconds ttl)
+{
+    m_notification[u"ttl"] = QString{QString::number(ttl.count()) + u's'};
+}
+
 void FirebaseAndroidNotification::setData(const QMap<QString, QString> &data)
 {
     QJsonObject obj;

@@ -18,6 +18,7 @@ public:
     void setIcon(const QString &icon);
     void setTag(const QString &tag);
     void setColor(const QString &color);
+    void setTtl(std::chrono::seconds ttl);
     void setData(const QMap<QString, QString> &data);
 
     bool isNull() const;
