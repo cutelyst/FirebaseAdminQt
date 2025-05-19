@@ -20,11 +20,12 @@ jobs:
             cmake_arg: '-DCMAKE_CXX_CLANG_TIDY=clang-tidy'
             qt_version: 6.6
 
-          - name: clazy
-            cmake_arg: '-DCMAKE_CXX_COMPILER=clazy'
-            qt_version: 6.6
-            apt_pgks:
-              - clazy
+          # clazy from ubuntu 24 is based on clang 15 which is too old for this C++ version
+          # - name: clazy
+          #   cmake_arg: '-DCMAKE_CXX_COMPILER=clazy'
+          #   qt_version: 6.4.2
+          #   apt_pgks:
+          #     - clazy
 
     steps:
       - name: Install Qt ${{ matrix.config.qt_version }} with options and default aqtversion
