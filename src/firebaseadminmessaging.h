@@ -80,6 +80,7 @@ class FIREBASE_ADMIN_QT_EXPORT FirebaseAdminMessaging : public QObject
     Q_OBJECT
 public:
     explicit FirebaseAdminMessaging(FirebaseAdmin *parent);
+    ~FirebaseAdminMessaging() = default;
 
     FirebaseAdminReply *send(const FirebaseMessage &message, bool validateOnly = false);
 

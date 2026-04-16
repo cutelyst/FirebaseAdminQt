@@ -15,8 +15,14 @@ struct FIREBASE_ADMIN_QT_EXPORT GoogleCloudReply {
 };
 
 struct FIREBASE_ADMIN_QT_EXPORT GoogleCloudCode {
-    QPointer<const QObject> receiver;
+    std::optional<QPointer<const QObject>> receiver;
     std::function<void(const GoogleCloudReply &)> code;
+
+    void call(const GoogleCloudReply &gcr) const {
+        if (code && (!receiver.has_value() || receiver->isNull())) {
+            code(gcr);
+        }
+    }
 };
 
 class FIREBASE_ADMIN_QT_EXPORT GoogleCloudOAuth2 : public QObject
@@ -41,7 +47,7 @@ public:
 
     void getAccessToken();
 
-    void getAccessToken(const QObject *receiver,
+    void getAccessToken(QObject *receiver,
                         std::function<void(const GoogleCloudReply &)> code);
 
 protected:

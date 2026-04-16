@@ -128,6 +128,7 @@ void GoogleCloudOAuth2::getAccessToken()
                         "Bearer "_ba + m_token.value(u"access_token").toString().toLatin1();
                     m_expires = m_token.value(u"expires_in").toInt() * 1000 - 30'000;
                     m_expiresTimer.start();
+                    gcr.data = m_token;
                     qCDebug(GC_OAUTH) << "Got Access Token" << m_token;
                 } else {
                     gcr.error = true;
@@ -140,9 +141,7 @@ void GoogleCloudOAuth2::getAccessToken()
             }
 
             for (const auto &code : m_codeToRun) {
-                if (code.receiver) {
-                    code.code(gcr);
-                }
+                code.call(gcr);
             }
             m_codeToRun.clear();
 
@@ -154,15 +153,13 @@ void GoogleCloudOAuth2::getAccessToken()
         GoogleCloudReply gcr;
         gcr.error = true;
         for (const auto &code : m_codeToRun) {
-            if (code.receiver) {
-                code.code(gcr);
-            }
+            code.call(gcr);
         }
         m_codeToRun.clear();
     }
 }
 
-void GoogleCloudOAuth2::getAccessToken(const QObject *receiver,
+void GoogleCloudOAuth2::getAccessToken(QObject *receiver,
                                        std::function<void(const GoogleCloudReply &)> code)
 {
     if (!m_token.isEmpty() && !m_expiresTimer.hasExpired(m_expires)) {

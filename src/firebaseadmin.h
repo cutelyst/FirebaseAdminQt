@@ -14,6 +14,7 @@ class FIREBASE_ADMIN_QT_EXPORT FirebaseAdmin : public GoogleCloudOAuth2
     Q_OBJECT
 public:
     explicit FirebaseAdmin(QObject *parent = nullptr);
+    ~FirebaseAdmin() = default;
 
     QString projectId() const;
     QByteArray clientVersionHeader() const;
