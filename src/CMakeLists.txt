@@ -98,6 +98,7 @@ set_target_properties(${target} PROPERTIES
     EXPORT_NAME Core
     VERSION ${PROJECT_VERSION}
     SOVERSION 0
+    POSITION_INDEPENDENT_CODE ON
 )
 
 target_link_libraries(${target}
